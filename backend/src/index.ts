@@ -1,6 +1,6 @@
 import { WebSocket, WebSocketServer } from 'ws';
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: 8000 });
 
 const rooms = new Map<string, WebSocket[]>();
 const socketRoom = new WeakMap<WebSocket, string>();
@@ -19,8 +19,12 @@ wss.on('connection', (ws) => {
         if (!rooms.has(room)) {
           rooms.set(room, []);
         }
-        rooms.get(room)!.push(ws);
-        ws.send(`Joined room: ${room}`);
+        const sockets = rooms.get(room)!;
+        if (!sockets.includes(ws)) {
+          sockets.push(ws);
+          socketRoom.set(ws, room);
+          ws.send(`Joined room: ${room}`);
+        }
       } else if (parsedMsg.type === 'leave') {
         const room = parsedMsg.room;
         if (rooms.has(room)) {
